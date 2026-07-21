@@ -5,14 +5,18 @@ import AdminSupplements from "./admin/AdminSupplements";
 import AdminBrands from "./admin/AdminBrands";
 import AdminComparisons from "./admin/AdminComparisons";
 import AdminBriefings from "./admin/AdminBriefings";
+import AdminProducts from "./admin/AdminProducts";
+import AdminGlp1 from "./admin/AdminGlp1";
+import AdminGuiaMala from "./admin/AdminGuiaMala";
 
-type Tab = "comparador" | "marcas" | "briefing" | "config";
+type Tab = "comparador" | "marcas" | "glp1" | "guia" | "briefing";
 
 export default function Admin() {
   const [, setLocation] = useLocation();
   const [user, setUser] = useState<{ name: string; role: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>("comparador");
+  const [selectedSupplement, setSelectedSupplement] = useState<{ id: number; nome: string } | null>(null);
 
   useEffect(() => {
     fetch("/api/admin/me", { credentials: "include" })
@@ -48,8 +52,9 @@ export default function Admin() {
   const tabs: { key: Tab; label: string; icon: string }[] = [
     { key: "comparador", label: "Comparador", icon: "⚖️" },
     { key: "marcas", label: "Marcas", icon: "🏷️" },
+    { key: "glp1", label: "GLP-1", icon: "💊" },
+    { key: "guia", label: "Guia", icon: "🧳" },
     { key: "briefing", label: "Briefing", icon: "📋" },
-    { key: "config", label: "Config", icon: "⚙️" },
   ];
 
   return (
@@ -64,14 +69,21 @@ export default function Admin() {
 
       {/* Content */}
       <main className="p-4 max-w-4xl mx-auto">
-        {activeTab === "comparador" && <AdminSupplements />}
-        {activeTab === "marcas" && <AdminBrands />}
-        {activeTab === "briefing" && <AdminBriefings />}
-        {activeTab === "config" && (
-          <div className="text-center text-gray-500 py-12">
-            <p>Configurações em breve.</p>
-          </div>
+        {activeTab === "comparador" && (
+          selectedSupplement ? (
+            <AdminProducts
+              supplementId={selectedSupplement.id}
+              supplementName={selectedSupplement.nome}
+              onClose={() => setSelectedSupplement(null)}
+            />
+          ) : (
+            <AdminSupplements onSelectSupplement={(id, nome) => setSelectedSupplement({ id, nome })} />
+          )
         )}
+        {activeTab === "marcas" && <AdminBrands />}
+        {activeTab === "glp1" && <AdminGlp1 />}
+        {activeTab === "guia" && <AdminGuiaMala />}
+        {activeTab === "briefing" && <AdminBriefings />}
       </main>
 
       {/* Bottom nav */}
@@ -79,7 +91,10 @@ export default function Admin() {
         {tabs.map(tab => (
           <button
             key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
+            onClick={() => {
+              setActiveTab(tab.key);
+              if (tab.key !== "comparador") setSelectedSupplement(null);
+            }}
             className={`flex flex-col items-center gap-0.5 px-3 py-1 text-xs ${
               activeTab === tab.key ? "text-green-700 font-semibold" : "text-gray-500"
             }`}

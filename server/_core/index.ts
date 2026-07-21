@@ -350,11 +350,15 @@ async function startServer() {
     try {
       switch (action) {
         case "ingest-feeds": {
-          res.json({ success: true, message: "Feed ingestion triggered" });
+          const { ingestAllFeeds } = await import("../feeds");
+          const feedResult = await ingestAllFeeds();
+          res.json({ success: true, message: "Feed ingestion complete", ...feedResult });
           break;
         }
         case "generate-briefing": {
-          res.json({ success: true, message: "Briefing generation triggered" });
+          const { generateBriefing } = await import("../briefingGenerator");
+          const briefingResult = await generateBriefing();
+          res.json({ success: briefingResult.success, message: briefingResult.success ? "Briefing generated" : briefingResult.error, briefingId: briefingResult.briefingId });
           break;
         }
         case "publish-briefing": {

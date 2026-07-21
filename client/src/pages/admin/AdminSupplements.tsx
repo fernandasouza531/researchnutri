@@ -2,7 +2,11 @@ import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
-export default function AdminSupplements() {
+interface AdminSupplementsProps {
+  onSelectSupplement?: (id: number, nome: string) => void;
+}
+
+export default function AdminSupplements({ onSelectSupplement }: AdminSupplementsProps) {
   const utils = trpc.useUtils();
   const { data: supplements, isLoading } = trpc.supplements.list.useQuery();
   const createMutation = trpc.supplements.create.useMutation({
@@ -149,14 +153,24 @@ export default function AdminSupplements() {
               <p className="font-medium text-gray-900">{s.nome}</p>
               <p className="text-sm text-gray-500">{s.categoria} · /{s.slug}</p>
             </div>
-            <button
-              onClick={() => {
-                if (confirm("Remover suplemento?")) deleteMutation.mutate({ id: s.id });
-              }}
-              className="text-red-500 text-sm hover:text-red-700"
-            >
-              Remover
-            </button>
+            <div className="flex items-center gap-3">
+              {onSelectSupplement && (
+                <button
+                  onClick={() => onSelectSupplement(s.id, s.nome)}
+                  className="px-3 py-1 bg-green-100 text-green-700 text-sm rounded hover:bg-green-200"
+                >
+                  Produtos
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  if (confirm("Remover suplemento?")) deleteMutation.mutate({ id: s.id });
+                }}
+                className="text-red-500 text-sm hover:text-red-700"
+              >
+                Remover
+              </button>
+            </div>
           </div>
         ))}
       </div>
